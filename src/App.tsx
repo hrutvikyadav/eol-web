@@ -1,7 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 
 function App() {
     const [count, setCount] = useState(0)
+    const [testObjects, setTestObjects] = useState<Array<string>>([])
+
+    const EOL_URL = "https://localhost:7084/ArbinEOL/"
+    const TESTOBJ_URL = EOL_URL + "GetTestObjects"
+
+    useEffect(() => {
+        axios.get(TESTOBJ_URL).then(res => {
+            if(res.status == 200){
+                setTestObjects(res.data)
+            }
+            else{
+                console.log("failed with status : ", res.status)
+            }
+        })
+    }, [])
 
     return (
         <>
