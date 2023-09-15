@@ -1,36 +1,64 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import Login from './components/Login'
+import StatusLine from './components/StatusLine'
+
+export type User = {
+    userName: string,
+    isAdmin: boolean,
+    password: string,
+    loginStatus: string
+}
+const EOL_URL = "https://localhost:7084/ArbinEOL/"
+
 
 function App() {
-    const [count, setCount] = useState(0)
     const [testObjects, setTestObjects] = useState<Array<string>>([])
+    const [user, setUser] = useState<User>(
+        {
+            userName: "",
+            password: "",
+            isAdmin: false,
+            loginStatus: ""
+        }
+    )
 
-    const EOL_URL = "https://localhost:7084/ArbinEOL/"
     const TESTOBJ_URL = EOL_URL + "GetTestObjects"
+    function fetchUser(userinfo: User) {
+
+            axios.post(EOL_URL + "Login", {
+                userName: userinfo.userName ,
+                isAdmin: userinfo.isAdmin,
+                password: userinfo.password,
+                loginStatus: userinfo.loginStatus,
+            })
+            .then(res => {
+                console.log(res.data)
+                const {isAdmin, loginStatus, password, userName} = res.data as User
+                if (loginStatus == "Login successful") {
+                        setUser({userName, password, loginStatus, isAdmin})
+                }
+            })
+            .catch(e => console.log("Login Err",e))
+    }
 
     useEffect(() => {
-        axios.get(TESTOBJ_URL).then(res => {
+        /*axios.get(TESTOBJ_URL).then(res => {
             if(res.status == 200){
                 setTestObjects(res.data)
+                console.log(testObjects)
             }
             else{
                 console.log("failed with status : ", res.status)
             }
-        })
+        })*/
     }, [])
 
     return (
-        <>
-            <h1>Vite + React</h1>
-            <div className="card">
-                <button className='border-black border-2 p-1 rounded-lg' onClick={() => setCount((count) => count + 1)}>
-                    count is {count}
-                </button>
-            </div>
-            <p className='text-3xl underline bg-violet-300'>
-                Tailwind works
-            </p>
-        </>
+        <div className='h-screen'>
+            <Login user={user} setUser={setUser} fetchUser={fetchUser} />
+            <StatusLine loginStatus={user.loginStatus == "" ? "Not yet" : user.loginStatus}></StatusLine>
+        </div>
     )
 }
 
